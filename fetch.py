@@ -8,7 +8,12 @@ def get_top_stories(n=10):
     for i in ids:
         item = requests.get(f"{BASE}/item/{i}.json", timeout=10).json()
         if item and "title" in item:
-            stories.append(item)
+            stories.append({
+                "title": item["title"],
+                "url": item.get("url", f"https://news.ycombinator.com/item?id={i}"),
+                "source": "Hacker News",
+                "published_at": item.get("time"),
+            })
     return stories
 
 if __name__ == "__main__":
