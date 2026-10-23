@@ -15,14 +15,23 @@ def init_db():
                 url TEXT NOT NULL UNIQUE,
                 source TEXT NOT NULL,
                 published_at INTEGER,
+                score INTEGER NOT NULL DEFAULT 0,
                 fetched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        columns = {
+            row[1]
+            for row in connection.execute("PRAGMA table_info(articles)")
+        }
+        if "score" not in columns:
+            connection.execute(
+                "ALTER TABLE articles ADD COLUMN score INTEGER NOT NULL DEFAULT 0"
+            )
 
 
 def save_articles(articles):
-    """Save articles and return the number of newly inserted rows."""
+    """Save articles from any configured source and return new row count."""
     inserted_count = 0
 
     with sqlite3.connect(DB_NAME) as connection:
@@ -30,14 +39,15 @@ def save_articles(articles):
             cursor = connection.execute(
                 """
                 INSERT OR IGNORE INTO articles
-                    (title, url, source, published_at)
-                VALUES (?, ?, ?, ?)
+                    (title, url, source, published_at, score)
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 (
                     article["title"],
                     article["url"],
                     article["source"],
                     article.get("published_at"),
+                    article.get("score", 0),
                 ),
             )
             inserted_count += cursor.rowcount
