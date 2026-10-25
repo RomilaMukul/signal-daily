@@ -53,3 +53,25 @@ def save_articles(articles):
             inserted_count += cursor.rowcount
 
     return inserted_count
+
+
+def get_articles():
+    """Return all stored articles in dictionary format."""
+    with sqlite3.connect(DB_NAME) as connection:
+        rows = connection.execute(
+            """
+            SELECT title, url, source, published_at, score
+            FROM articles
+            """
+        ).fetchall()
+
+    return [
+        {
+            "title": row[0],
+            "url": row[1],
+            "source": row[2],
+            "published_at": row[3],
+            "score": row[4],
+        }
+        for row in rows
+    ]
