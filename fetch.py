@@ -41,6 +41,7 @@ def get_top_stories(n=10):
                 "source": "Hacker News",
                 "published_at": item.get("time"),
                 "score": item.get("score", 0),
+                "description": item.get("text"),
             })
     return stories
 
@@ -68,6 +69,7 @@ def get_rss_articles(feed_url, source):
             "source": source,
             "published_at": published_at,
             "score": 0,
+            "description": entry.get("summary"),
         })
 
     return articles

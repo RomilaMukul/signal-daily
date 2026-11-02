@@ -3,6 +3,15 @@ import sqlite3
 
 DB_NAME = "signal.db"
 
+ARTICLE_COLUMNS = {
+    "description": "TEXT",
+    "summary": "TEXT",
+    "topics": "TEXT",
+    "content_hash": "TEXT",
+    "cluster_id": "INTEGER",
+    "processed_at": "TEXT",
+}
+
 
 def init_db():
     """Create the articles table if it does not already exist."""
@@ -16,6 +25,12 @@ def init_db():
                 source TEXT NOT NULL,
                 published_at INTEGER,
                 score INTEGER NOT NULL DEFAULT 0,
+                description TEXT,
+                summary TEXT,
+                topics TEXT,
+                content_hash TEXT,
+                cluster_id INTEGER,
+                processed_at TEXT,
                 fetched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -28,6 +43,11 @@ def init_db():
             connection.execute(
                 "ALTER TABLE articles ADD COLUMN score INTEGER NOT NULL DEFAULT 0"
             )
+        for column_name, column_type in ARTICLE_COLUMNS.items():
+            if column_name not in columns:
+                connection.execute(
+                    f"ALTER TABLE articles ADD COLUMN {column_name} {column_type}"
+                )
 
 
 def save_articles(articles):
@@ -39,8 +59,8 @@ def save_articles(articles):
             cursor = connection.execute(
                 """
                 INSERT OR IGNORE INTO articles
-                    (title, url, source, published_at, score)
-                VALUES (?, ?, ?, ?, ?)
+                    (title, url, source, published_at, score, description)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     article["title"],
@@ -48,6 +68,7 @@ def save_articles(articles):
                     article["source"],
                     article.get("published_at"),
                     article.get("score", 0),
+                    article.get("description"),
                 ),
             )
             inserted_count += cursor.rowcount
@@ -61,6 +82,7 @@ def get_articles():
         rows = connection.execute(
             """
             SELECT title, url, source, published_at, score
+                , description, summary, topics, content_hash, cluster_id, processed_at
             FROM articles
             """
         ).fetchall()
@@ -72,6 +94,12 @@ def get_articles():
             "source": row[2],
             "published_at": row[3],
             "score": row[4],
+            "description": row[5],
+            "summary": row[6],
+            "topics": row[7],
+            "content_hash": row[8],
+            "cluster_id": row[9],
+            "processed_at": row[10],
         }
         for row in rows
     ]
