@@ -3,6 +3,7 @@ import logging
 
 import feedparser
 import requests
+from url_utils import normalize_url
 
 BASE = "https://hacker-news.firebaseio.com/v0"
 logger = logging.getLogger(__name__)
@@ -37,7 +38,9 @@ def get_top_stories(n=10):
         if item and "title" in item:
             stories.append({
                 "title": item["title"],
-                "url": item.get("url", f"https://news.ycombinator.com/item?id={i}"),
+                "url": normalize_url(
+                    item.get("url", f"https://news.ycombinator.com/item?id={i}")
+                ),
                 "source": "Hacker News",
                 "published_at": item.get("time"),
                 "score": item.get("score", 0),
@@ -65,7 +68,7 @@ def get_rss_articles(feed_url, source):
 
         articles.append({
             "title": entry["title"],
-            "url": entry["link"],
+            "url": normalize_url(entry["link"]),
             "source": source,
             "published_at": published_at,
             "score": 0,
